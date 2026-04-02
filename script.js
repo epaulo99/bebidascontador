@@ -103,7 +103,28 @@ function initApp() {
   backToLoginBtn.addEventListener("click", () => setAuthTab("login"));
 
   if (!window.supabase || !window.supabase.createClient) {
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      showMessage(loginMessage, "SDK do Supabase nao carregou.", "error");
+    });
+    requestForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      showMessage(requestMessage, "SDK do Supabase nao carregou.", "error");
+    });
     showMessage(loginMessage, "SDK do Supabase nao carregou.", "error");
+    return;
+  }
+
+  if (!isSupabaseConfigured()) {
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      showMessage(loginMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
+    });
+    requestForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      showMessage(requestMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
+    });
+    showMessage(loginMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
     return;
   }
 
