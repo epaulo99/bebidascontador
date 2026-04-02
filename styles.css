@@ -62,6 +62,24 @@ body {
   display: block;
 }
 
+#loginPanel {
+  width: min(650px, 100%);
+  margin: 0 auto;
+}
+
+#loginPanel .auth-grid {
+  grid-template-columns: 1fr;
+}
+
+#loginPanel .title-with-icon {
+  justify-content: center;
+  text-align: center;
+}
+
+#loginPanel .auth-actions {
+  justify-content: center;
+}
+
 .tab-button {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -107,6 +125,12 @@ body {
 .card h2 {
   margin-top: 0;
   margin-bottom: 8px;
+}
+
+.title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .hidden {

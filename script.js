@@ -92,6 +92,16 @@ function initApp() {
     return;
   }
 
+  function setAuthTab(tabId) {
+    const showLogin = tabId === "login";
+    loginPanel.classList.toggle("active", showLogin);
+    requestPanel.classList.toggle("active", !showLogin);
+  }
+
+  // Mantem a troca Login/Cadastro funcionando mesmo com erro de SDK/config.
+  goToRegisterBtn.addEventListener("click", () => setAuthTab("request"));
+  backToLoginBtn.addEventListener("click", () => setAuthTab("login"));
+
   if (!window.supabase || !window.supabase.createClient) {
     showMessage(loginMessage, "SDK do Supabase nao carregou.", "error");
     return;
@@ -101,12 +111,6 @@ function initApp() {
   let currentProfile = null;
   let drinksCache = [];
   let usersCache = [];
-
-  function setAuthTab(tabId) {
-    const showLogin = tabId === "login";
-    loginPanel.classList.toggle("active", showLogin);
-    requestPanel.classList.toggle("active", !showLogin);
-  }
 
   function setActiveTab(tabId) {
     const tabs = [
@@ -497,7 +501,7 @@ function initApp() {
     const password = requestPassword.value.trim();
 
     if (!email || !username || !password) {
-      showMessage(requestMessage, "Preencha e-mail, usuario e senha.", "error");
+      showMessage(requestMessage, "Preencha todos os campos para enviar a solicitacao.", "error");
       return;
     }
 
@@ -596,8 +600,6 @@ function initApp() {
   drinkSelect.addEventListener("change", calculateDashboard);
   currentWeight.addEventListener("input", calculateDashboard);
   logoutBtn.addEventListener("click", logout);
-  goToRegisterBtn.addEventListener("click", () => setAuthTab("request"));
-  backToLoginBtn.addEventListener("click", () => setAuthTab("login"));
 
   (async () => {
     if (!isSupabaseConfigured()) {
