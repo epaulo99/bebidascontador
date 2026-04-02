@@ -1,5 +1,6 @@
-const SUPABASE_URL = "https://ypkezqkloqdsdcfczjdc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlwa2V6cWtsb3Fkc2RjZmN6amRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzMzMDEsImV4cCI6MjA5MDcwOTMwMX0.sxbkuowHP_0csh-26ioLQqUf284yqc3g6FKMLgOD1G0";
+const APP_CONFIG = window.APP_CONFIG || {};
+const SUPABASE_URL = APP_CONFIG.supabaseUrl || "";
+const SUPABASE_ANON_KEY = APP_CONFIG.supabaseAnonKey || "";
 
 const ROLES = {
   admin: "admin",
@@ -31,7 +32,7 @@ function parsePositiveNumber(value) {
 }
 
 function isSupabaseConfigured() {
-  return !SUPABASE_URL.includes("COLE_AQUI") && !SUPABASE_ANON_KEY.includes("COLE_AQUI");
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
 
 function initApp() {
@@ -436,7 +437,7 @@ function initApp() {
     clearMessage(loginMessage);
 
     if (!isSupabaseConfigured()) {
-      showMessage(loginMessage, "Configure SUPABASE_URL e SUPABASE_ANON_KEY no script.js.", "error");
+      showMessage(loginMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
       return;
     }
 
@@ -487,7 +488,7 @@ function initApp() {
     clearMessage(requestMessage);
 
     if (!isSupabaseConfigured()) {
-      showMessage(requestMessage, "Configure SUPABASE_URL e SUPABASE_ANON_KEY no script.js.", "error");
+      showMessage(requestMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
       return;
     }
 
@@ -600,7 +601,7 @@ function initApp() {
 
   (async () => {
     if (!isSupabaseConfigured()) {
-      showMessage(loginMessage, "Configure SUPABASE_URL e SUPABASE_ANON_KEY no script.js.", "error");
+      showMessage(loginMessage, "Configure supabaseUrl e supabaseAnonKey no config.js.", "error");
       return;
     }
 
