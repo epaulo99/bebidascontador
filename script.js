@@ -84,13 +84,25 @@ function initApp() {
   const usersList = document.getElementById("usersList");
   const usersMessage = document.getElementById("usersMessage");
 
+  const editDrinkModal = document.getElementById("editDrinkModal");
+  const editDrinkForm = document.getElementById("editDrinkForm");
+  const editDrinkName = document.getElementById("editDrinkName");
+  const editTotalVolume = document.getElementById("editTotalVolume");
+  const editFullWeight = document.getElementById("editFullWeight");
+  const editDrinkMessage = document.getElementById("editDrinkMessage");
+  const cancelEditDrinkBtn = document.getElementById("cancelEditDrinkBtn");
+
   if (
     !authSection || !appSection || !loginForm || !requestForm || !tabDashboard ||
     !tabBebidas || !tabUsuarios || !dashboardSection || !bebidasSection || !usuariosSection ||
-    !loginPanel || !requestPanel || !goToRegisterBtn || !backToLoginBtn
+    !loginPanel || !requestPanel || !goToRegisterBtn || !backToLoginBtn ||
+    !editDrinkModal || !editDrinkForm || !editDrinkName || !editTotalVolume ||
+    !editFullWeight || !editDrinkMessage || !cancelEditDrinkBtn
   ) {
     return;
   }
+
+  let editingDrinkId = null;
 
   function setAuthTab(tabId) {
     const showLogin = tabId === "login";
@@ -219,43 +231,7 @@ function initApp() {
         editBtn.type = "button";
         editBtn.className = "btn secondary";
         editBtn.textContent = "Editar";
-        editBtn.addEventListener("click", async () => {
-          const newName = window.prompt("Nome da bebida:", drink.name);
-          if (newName === null) return;
-
-          const newVolumeRaw = window.prompt("Volume total (mL):", String(drink.total_volume));
-          if (newVolumeRaw === null) return;
-
-          const newWeightRaw = window.prompt("Peso da garrafa cheia (g):", String(drink.full_weight));
-          if (newWeightRaw === null) return;
-
-          const name = newName.trim();
-          const totalVolumeNumber = parsePositiveNumber(newVolumeRaw);
-          const fullWeightNumber = parsePositiveNumber(newWeightRaw);
-
-          if (!name || !totalVolumeNumber || !fullWeightNumber) {
-            showMessage(drinkMessage, "Preencha valores validos para editar a bebida.", "error");
-            return;
-          }
-
-          const { error } = await supabase
-            .from("drinks")
-            .update({
-              name,
-              total_volume: totalVolumeNumber,
-              full_weight: fullWeightNumber
-            })
-            .eq("id", drink.id);
-
-          if (error) {
-            showMessage(drinkMessage, "Erro ao editar bebida.", "error");
-            return;
-          }
-
-          showMessage(drinkMessage, "Bebida editada com sucesso.", "success");
-          await loadDrinks();
-          calculateDashboard();
-        });
+        editBtn.addEventListener("click", () => openEditDrinkModal(drink));
 
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
@@ -280,6 +256,22 @@ function initApp() {
 
       drinkList.appendChild(li);
     });
+  }
+
+  function openEditDrinkModal(drink) {
+    editingDrinkId = drink.id;
+    editDrinkName.value = drink.name;
+    editTotalVolume.value = String(drink.total_volume);
+    editFullWeight.value = String(drink.full_weight);
+    clearMessage(editDrinkMessage);
+    editDrinkModal.classList.remove("hidden");
+  }
+
+  function closeEditDrinkModal() {
+    editingDrinkId = null;
+    editDrinkForm.reset();
+    clearMessage(editDrinkMessage);
+    editDrinkModal.classList.add("hidden");
   }
 
   function canEditUser(targetUser) {
@@ -653,6 +645,44 @@ function initApp() {
     await loadDrinks();
   });
 
+  editDrinkForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearMessage(editDrinkMessage);
+
+    if (!editingDrinkId) {
+      showMessage(editDrinkMessage, "Nenhuma bebida selecionada para editar.", "error");
+      return;
+    }
+
+    const name = editDrinkName.value.trim();
+    const totalVolumeNumber = parsePositiveNumber(editTotalVolume.value);
+    const fullWeightNumber = parsePositiveNumber(editFullWeight.value);
+
+    if (!name || !totalVolumeNumber || !fullWeightNumber) {
+      showMessage(editDrinkMessage, "Preencha valores validos para editar a bebida.", "error");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("drinks")
+      .update({
+        name,
+        total_volume: totalVolumeNumber,
+        full_weight: fullWeightNumber
+      })
+      .eq("id", editingDrinkId);
+
+    if (error) {
+      showMessage(editDrinkMessage, "Erro ao editar bebida.", "error");
+      return;
+    }
+
+    showMessage(drinkMessage, "Bebida editada com sucesso.", "success");
+    closeEditDrinkModal();
+    await loadDrinks();
+    calculateDashboard();
+  });
+
   tabDashboard.addEventListener("click", () => setActiveTab("dashboard"));
 
   tabBebidas.addEventListener("click", () => {
@@ -669,6 +699,12 @@ function initApp() {
   drinkSelect.addEventListener("change", calculateDashboard);
   currentWeight.addEventListener("input", calculateDashboard);
   logoutBtn.addEventListener("click", logout);
+  cancelEditDrinkBtn.addEventListener("click", closeEditDrinkModal);
+  editDrinkModal.addEventListener("click", (event) => {
+    if (event.target === editDrinkModal) {
+      closeEditDrinkModal();
+    }
+  });
 
   (async () => {
     if (!isSupabaseConfigured()) {
