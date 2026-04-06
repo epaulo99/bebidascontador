@@ -212,6 +212,51 @@ function initApp() {
       li.appendChild(info);
 
       if (currentProfile && currentProfile.role === ROLES.admin) {
+        const actions = document.createElement("div");
+        actions.className = "row-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn secondary";
+        editBtn.textContent = "Editar";
+        editBtn.addEventListener("click", async () => {
+          const newName = window.prompt("Nome da bebida:", drink.name);
+          if (newName === null) return;
+
+          const newVolumeRaw = window.prompt("Volume total (mL):", String(drink.total_volume));
+          if (newVolumeRaw === null) return;
+
+          const newWeightRaw = window.prompt("Peso da garrafa cheia (g):", String(drink.full_weight));
+          if (newWeightRaw === null) return;
+
+          const name = newName.trim();
+          const totalVolumeNumber = parsePositiveNumber(newVolumeRaw);
+          const fullWeightNumber = parsePositiveNumber(newWeightRaw);
+
+          if (!name || !totalVolumeNumber || !fullWeightNumber) {
+            showMessage(drinkMessage, "Preencha valores validos para editar a bebida.", "error");
+            return;
+          }
+
+          const { error } = await supabase
+            .from("drinks")
+            .update({
+              name,
+              total_volume: totalVolumeNumber,
+              full_weight: fullWeightNumber
+            })
+            .eq("id", drink.id);
+
+          if (error) {
+            showMessage(drinkMessage, "Erro ao editar bebida.", "error");
+            return;
+          }
+
+          showMessage(drinkMessage, "Bebida editada com sucesso.", "success");
+          await loadDrinks();
+          calculateDashboard();
+        });
+
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
         deleteBtn.className = "btn danger";
@@ -227,7 +272,10 @@ function initApp() {
           await loadDrinks();
           calculateDashboard();
         });
-        li.appendChild(deleteBtn);
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        li.appendChild(actions);
       }
 
       drinkList.appendChild(li);
