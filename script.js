@@ -192,8 +192,11 @@ function initApp() {
 
   function renderDrinkOptions() {
     const selectedValue = drinkSelect.value;
+    const sortedDrinks = [...drinksCache].sort((a, b) =>
+      String(a.name).localeCompare(String(b.name), "pt-BR", { sensitivity: "base" })
+    );
     drinkSelect.innerHTML = '<option value="">Selecione...</option>';
-    drinksCache.forEach((drink) => {
+    sortedDrinks.forEach((drink) => {
       const option = document.createElement("option");
       option.value = drink.id;
       option.textContent = drink.name;
@@ -206,10 +209,13 @@ function initApp() {
   }
 
   function renderDrinksList() {
+    const sortedDrinks = [...drinksCache].sort((a, b) =>
+      String(a.name).localeCompare(String(b.name), "pt-BR", { sensitivity: "base" })
+    );
     drinkList.innerHTML = "";
     emptyDrinkMessage.style.display = drinksCache.length === 0 ? "block" : "none";
 
-    drinksCache.forEach((drink) => {
+    sortedDrinks.forEach((drink) => {
       const li = document.createElement("li");
       li.className = "drink-item";
 
