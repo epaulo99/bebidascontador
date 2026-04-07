@@ -183,8 +183,43 @@ function initApp() {
       return;
     }
 
-    const remaining = (currentWeightNumber / drink.full_weight) * drink.total_volume;
-    const doses = Math.floor((currentWeightNumber / drink.full_weight) * drink.total_volume / 60);
+    const fullWeightNumber = Number(drink.full_weight);
+    const volumeNumber = Number(drink.total_volume);
+
+    if (
+      !Number.isFinite(fullWeightNumber) ||
+      !Number.isFinite(volumeNumber) ||
+      fullWeightNumber <= 0 ||
+      volumeNumber <= 0
+    ) {
+      remainingMl.textContent = "0 mL";
+      doseCount.textContent = "0";
+      showMessage(
+        dashboardMessage,
+        "Esta bebida possui dados invalidos. Edite o cadastro para corrigir.",
+        "error"
+      );
+      return;
+    }
+
+    // Assume densidade aproximada 1 g/mL para estimar tara automaticamente.
+    const emptyWeightNumber = fullWeightNumber - volumeNumber;
+    if (emptyWeightNumber < 0) {
+      remainingMl.textContent = "0 mL";
+      doseCount.textContent = "0";
+      showMessage(
+        dashboardMessage,
+        "Peso cheio menor que volume total. Corrija o cadastro da bebida.",
+        "error"
+      );
+      return;
+    }
+
+    const netLiquidWeight = fullWeightNumber - emptyWeightNumber;
+    const netCurrentWeight = currentWeightNumber - emptyWeightNumber;
+    const fillFraction = Math.min(1, Math.max(0, netCurrentWeight / netLiquidWeight));
+    const remaining = fillFraction * volumeNumber;
+    const doses = Math.floor(remaining / 60);
 
     remainingMl.textContent = `${Math.max(0, remaining).toFixed(0)} mL`;
     doseCount.textContent = String(Math.max(0, doses));
@@ -224,7 +259,7 @@ function initApp() {
       const nameEl = document.createElement("strong");
       nameEl.textContent = drink.name;
       const metaEl = document.createElement("span");
-      metaEl.textContent = `Volume: ${drink.total_volume} mL | Peso cheia: ${drink.full_weight} g`;
+      metaEl.textContent = `Volume: ${drink.total_volume} mL | Cheia: ${drink.full_weight} g`;
       info.appendChild(nameEl);
       info.appendChild(metaEl);
       li.appendChild(info);
@@ -631,6 +666,11 @@ function initApp() {
       return;
     }
 
+    if (fullWeightNumber < totalVolumeNumber) {
+      showMessage(drinkMessage, "Peso cheio deve ser maior ou igual ao volume total (1 mL ~= 1 g).", "error");
+      return;
+    }
+
     const { data: authData } = await supabase.auth.getUser();
     const createdBy = authData?.user?.id || null;
 
@@ -666,6 +706,11 @@ function initApp() {
 
     if (!name || !totalVolumeNumber || !fullWeightNumber) {
       showMessage(editDrinkMessage, "Preencha valores validos para editar a bebida.", "error");
+      return;
+    }
+
+    if (fullWeightNumber < totalVolumeNumber) {
+      showMessage(editDrinkMessage, "Peso cheio deve ser maior ou igual ao volume total (1 mL ~= 1 g).", "error");
       return;
     }
 
